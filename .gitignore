@@ -1,0 +1,39 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# WSL virtual environment
+ai-search-venv/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Uploaded files
+backend/uploads/
+
+# Test files
+backend/test_invalid.txt
+backend/test_empty.jpg
+backend/test.png
+
+# Environment files
+.env
+
+# Large dataset archive
+val2017.zip
+
+# Backups
+backend_backup/
+frontend_backup/
+
+# COCO dataset
+val2017/
+
+# Generated FAISS/model files
+index/
+models/
+
+# Generated benchmark binary
+benchmark_mojo
