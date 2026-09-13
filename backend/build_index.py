@@ -10,7 +10,7 @@ from PIL import Image
 # -----------------------------
 # 1. Dataset path
 # -----------------------------
-IMAGE_FOLDER = "val2017/val2017"
+IMAGE_FOLDER = "../val2017/val2017"
 
 # FAISS index output
 INDEX_FOLDER = "index"
@@ -45,7 +45,7 @@ for filename in os.listdir(IMAGE_FOLDER):
 image_paths.sort()
 
 # TEST ONLY: first 50 images
-# image_paths = image_paths[:50]
+image_paths = image_paths[:2000]
 
 print("Images found:", len(image_paths))
 

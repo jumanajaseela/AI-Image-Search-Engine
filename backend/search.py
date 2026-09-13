@@ -75,7 +75,7 @@ def search_similar_images(query_image_path, top_k=5):
             continue
 
         results.append({
-            "image": image_paths[idx],
+            "image": image_paths[idx].replace("../", "", 1),
             "score": float(score)
         })
 
@@ -87,7 +87,7 @@ def search_similar_images(query_image_path, top_k=5):
 # -----------------------------
 if __name__ == "__main__":
 
-    query_image = "val2017/val2017/000000000139.jpg"
+    query_image = "../val2017/val2017/000000000139.jpg"
 
     results = search_similar_images(query_image, top_k=5)
 
