@@ -1,4 +1,7 @@
 import { useState } from "react";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 import "./App.css";
 
 function App() {
@@ -29,7 +32,7 @@ function App() {
     formData.append("file", image);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/search", {
+      const response = await fetch(`${API_BASE_URL}/search`, {
         method: "POST",
         body: formData,
       });
@@ -118,7 +121,7 @@ function App() {
                 <div className="result-card" key={index}>
                   <div className="image-wrapper">
                     <img
-                      src={`http://127.0.0.1:8000/images/${result.image}`}
+                      src={`${API_BASE_URL}${result.image}`}
                       alt={`Similar ${index + 1}`}
                     />
 

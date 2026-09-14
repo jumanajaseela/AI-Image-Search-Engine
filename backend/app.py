@@ -30,7 +30,13 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 
-app.mount("/images", StaticFiles(directory=PROJECT_DIR), name="images")
+IMAGE_FOLDER = os.path.join(PROJECT_DIR, "val2017", "val2017")
+
+app.mount(
+    "/images",
+    StaticFiles(directory=IMAGE_FOLDER),
+    name="images"
+)
 
 @app.get("/")
 def home():
@@ -41,7 +47,7 @@ def home():
 @app.get("/stats")
 def stats():
     return {
-        "indexed_images": 5000,
+        "indexed_images": 2000,
         "embedding_dimension": 512
     }
 
@@ -55,6 +61,9 @@ async def search(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, buffer)
 
         results = search_similar_images(file_path, top_k=5)
+
+        for result in results:
+            result["image"] = f"/images/{os.path.basename(result['image'])}"
 
         return {"results": results}
 
