@@ -2,14 +2,9 @@ import os
 import cv2
 import faiss
 import numpy as np
-import torch
-import open_clip
-from PIL import Image
 
 
-# -----------------------------
-# 1. Dataset path
-# -----------------------------
+# Dataset path
 IMAGE_FOLDER = "../val2017/val2017"
 
 # FAISS index output
@@ -19,83 +14,100 @@ IMAGE_LIST_FILE = os.path.join(INDEX_FOLDER, "image_paths.txt")
 
 
 # -----------------------------
-# 2. Load CLIP model
+# Generate OpenCV embedding
 # -----------------------------
-print("Loading CLIP model...")
+def get_embedding(image_path):
 
-model, _, preprocess = open_clip.create_model_and_transforms(
-    "ViT-B-32-quickgelu",
-    pretrained="openai"
-)
+    image = cv2.imread(image_path)
 
-model.eval()
+    if image is None:
+        raise ValueError("Image could not be loaded")
 
-print("CLIP model loaded!")
+    # Resize image
+    image = cv2.resize(image, (224, 224))
+
+    # Convert BGR to HSV
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # Create color histogram
+    histogram = cv2.calcHist(
+        [hsv],
+        [0, 1],
+        None,
+        [32, 32],
+        [0, 180, 0, 256]
+    )
+
+    # Normalize
+    histogram = cv2.normalize(
+        histogram,
+        histogram
+    )
+
+    # Convert to 1D vector
+    return histogram.flatten().astype("float32")
 
 
 # -----------------------------
-# 3. Find images
+# Find images
 # -----------------------------
 image_paths = []
 
 for filename in os.listdir(IMAGE_FOLDER):
-    if filename.lower().endswith((".jpg", ".jpeg", ".png")):
-        image_paths.append(os.path.join(IMAGE_FOLDER, filename))
+
+    if filename.lower().endswith(
+        (".jpg", ".jpeg", ".png")
+    ):
+        image_paths.append(
+            os.path.join(IMAGE_FOLDER, filename)
+        )
 
 image_paths.sort()
 
-# TEST ONLY: first 50 images
-image_paths = image_paths[:2000]
-
+# Use all available images
 print("Images found:", len(image_paths))
 
 
 # -----------------------------
-# 4. Generate embeddings
+# Generate embeddings
 # -----------------------------
 embeddings = []
+valid_image_paths = []
 
 for i, image_path in enumerate(image_paths):
 
     try:
-        # Open image
-        image = Image.open(image_path).convert("RGB")
 
-        # OpenCLIP preprocessing
-        image = preprocess(image).unsqueeze(0)
+        embedding = get_embedding(image_path)
 
-        # Generate embedding
-        with torch.no_grad():
-            embedding = model.encode_image(image)
+        embeddings.append(embedding)
+        valid_image_paths.append(image_path)
 
-        # Normalize embedding
-        embedding = embedding / embedding.norm(
-            dim=-1,
-            keepdim=True
+        print(
+            f"Processed {i + 1}/{len(image_paths)}"
         )
 
-        # Convert PyTorch tensor → NumPy
-        embedding = embedding.cpu().numpy().astype("float32")
-
-        embeddings.append(embedding[0])
-
-        print(f"Processed {i + 1}/{len(image_paths)}")
-
     except Exception as e:
+
         print("Error processing:", image_path)
         print(e)
 
 
 # -----------------------------
-# 5. Convert to NumPy array
+# Convert to NumPy
 # -----------------------------
-embeddings = np.array(embeddings).astype("float32")
+embeddings = np.array(
+    embeddings
+).astype("float32")
 
-print("Embedding matrix shape:", embeddings.shape)
+print(
+    "Embedding matrix shape:",
+    embeddings.shape
+)
 
 
 # -----------------------------
-# 6. Create FAISS index
+# Create FAISS index
 # -----------------------------
 dimension = embeddings.shape[1]
 
@@ -105,18 +117,28 @@ index.add(embeddings)
 
 
 # -----------------------------
-# 7. Save FAISS index
+# Save FAISS index
 # -----------------------------
-os.makedirs(INDEX_FOLDER, exist_ok=True)
+os.makedirs(
+    INDEX_FOLDER,
+    exist_ok=True
+)
 
-faiss.write_index(index, INDEX_FILE)
+faiss.write_index(
+    index,
+    INDEX_FILE
+)
 
 
 # -----------------------------
-# 8. Save image paths
+# Save image paths
 # -----------------------------
-with open(IMAGE_LIST_FILE, "w") as f:
-    for path in image_paths:
+with open(
+    IMAGE_LIST_FILE,
+    "w"
+) as f:
+
+    for path in valid_image_paths:
         f.write(path + "\n")
 
 
@@ -124,7 +146,19 @@ print()
 print("================================")
 print("FAISS INDEX CREATED SUCCESSFULLY")
 print("================================")
-print("Indexed images:", len(image_paths))
-print("Embedding dimension:", dimension)
-print("Index file:", INDEX_FILE)
-print("Image list:", IMAGE_LIST_FILE)
+print(
+    "Indexed images:",
+    len(valid_image_paths)
+)
+print(
+    "Embedding dimension:",
+    dimension
+)
+print(
+    "Index file:",
+    INDEX_FILE
+)
+print(
+    "Image list:",
+    IMAGE_LIST_FILE
+)

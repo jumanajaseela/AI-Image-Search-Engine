@@ -48,7 +48,7 @@ def home():
 def stats():
     return {
         "indexed_images": 2000,
-        "embedding_dimension": 512
+        "embedding_dimension": 1024
     }
 
 
