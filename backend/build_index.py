@@ -5,7 +5,7 @@ import numpy as np
 
 
 # Dataset path
-IMAGE_FOLDER = "../val2017/val2017"
+IMAGE_FOLDER = "deploy_images"
 
 # FAISS index output
 INDEX_FOLDER = "index"
